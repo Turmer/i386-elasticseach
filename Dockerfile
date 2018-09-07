@@ -1,4 +1,7 @@
-FROM java:8-jre
+FROM ubuntu:16.04
+
+RUN apt-get update
+RUN apt-get install -y wget
 
 # grab gosu for easy step-down from root
 ENV GOSU_VERSION 1.7
@@ -12,20 +15,14 @@ RUN set -x \
 	&& chmod +x /usr/local/bin/gosu \
 	&& gosu nobody true
 
-# https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-repositories.html
-# https://packages.elasticsearch.org/GPG-KEY-elasticsearch
-RUN apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 46095ACC8548582C1A2699A9D27D666CD88E42B4
+#some_ important _library
+RUN apt-get update && apt-get install wget build-essential gcc make -y
 
-ENV ELASTICSEARCH_MAJOR 1.7
-ENV ELASTICSEARCH_VERSION 1.7.5
-ENV ELASTICSEARCH_REPO_BASE http://packages.elasticsearch.org/elasticsearch/1.7/debian
+#Install_JAVA
+RUN apt-get install default-jdk -y
 
-RUN echo "deb $ELASTICSEARCH_REPO_BASE stable main" > /etc/apt/sources.list.d/elasticsearch.list
-
-RUN set -x \
-	&& apt-get clean && apt-get update \
-	&& apt-get install -y --no-install-recommends elasticsearch=$ELASTICSEARCH_VERSION \
-	&& rm -rf /var/lib/apt/lists/*
+#Install_elasticsearch
+RUN apt-get install elasticsearch -y
 
 ENV PATH /usr/share/elasticsearch/bin:$PATH
 
@@ -48,6 +45,6 @@ VOLUME /usr/share/elasticsearch/data
 
 COPY docker-entrypoint.sh /
 
-EXPOSE 9217 9317
+EXPOSE 9200 9300
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["elasticsearch"]
